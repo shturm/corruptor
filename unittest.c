@@ -52,17 +52,13 @@ void test_demo_strstr()
 	printf("strstr('abcd','z'): %s\n", strstr("abcd", "z")); // null
 }
 
-int filter(const struct dirent *d)
-{ 
-	if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) return 0;
-
-	return 1;
-}
-
 void test_dirent()
 {
 	struct dirent **eps;
-	int n = scandir ("./", &eps, filter, alphasort); // dirent: alphasort
+	// int n = scandir ("./", &eps, filter, alphasort); // dirent: alphasort
+	char target_dir[512] = "target/nested/";
+	printf("target_dir: %s\n", &target_dir);
+	int n = scandir (&target_dir, &eps, filter, alphasort); // dirent: alphasort
 	if (n >= 0)
 	{
 		int cnt;
@@ -82,7 +78,7 @@ void test_calc_start()
 	assert(1*MB > calc_start(721));	
 	assert(1*MB > calc_start(1*MB));
 	assert(1*MB+1 > calc_start(2*MB));
-	assert(1*MB > calc_start(3*MB));
+	assert(1*MB > calc_start(3*MB)); // malo
 	assert(1*MB > calc_start(4*MB));
 	
 	assert(2*MB == calc_start(5*MB));
@@ -114,10 +110,10 @@ void test_calc_start()
 
 int main(int argc, char const *argv[])
 {
-	test("strstr(...)", test_demo_strstr);
-	test("test_is_filepath_target()", test_is_filepath_target);
+	// test("strstr(...)", test_demo_strstr);
+	// test("test_is_filepath_target()", test_is_filepath_target);
 	test("test_dirent()", test_dirent);
-	test("test_calc_start()", test_calc_start);
+	// test("test_calc_start()", test_calc_start);
 
 	printf("TESTCASES: %d\n", testcase_count);
 	return 0;

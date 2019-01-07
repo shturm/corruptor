@@ -18,5 +18,5 @@ BOOL fexists(const char* filename);
 BOOL is_filepath_target(const char* filepath, const char* prefix_pattern);
 long int calc_start(long int size);
 void corrupt(const char* filepath);
-
+int filter(const struct dirent *d);
 #endif

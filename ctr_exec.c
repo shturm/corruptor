@@ -1,11 +1,15 @@
 #include <string.h>
 #include "ctr.h"
 
-int filter(const struct dirent *d)
-{ 
-	if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) return 0;
-	
-	return 1;
+// trim: remove trailing blanks, tabs, newlines *1
+int trim(char s[])
+{
+	int n;
+	for (n = strlen(s)-1; n >= 0; n--)
+		if (s[n] != ' ' && s[n] != '\t' && s[n] != '\n')
+			break;
+	s[n+1] = '\0';
+	return n;
 }
 
 int main(int argc, char const *argv[])
@@ -15,15 +19,21 @@ int main(int argc, char const *argv[])
 
 	FILE* fconf = fopen("ctr.xlsx", "r");
 
-	char* target_dir[512]; // target dir read from ctr.xlsx
+	char* target_dir[256]; // target dir read from ctr.xlsx
 	char* pattern_prefix[128]; // 20190101
-	fgets(target_dir, 512, fconf);
-	fgets(pattern_prefix, 512, fconf);
-	// printf("%s\n", target_dir); //
-	fclose(fconf);
-	if (!fexists(target_dir)) return 0;
+	fgets(target_dir, 256, fconf); // clean trailing newline
+	fgets(pattern_prefix, 128, fconf);
 
-	printf("target_dir is %s\n", target_dir);
+	trim(target_dir);
+	trim(pattern_prefix);
+
+	fclose(fconf);
+	
+	// printf("fexists(\"%s\"): %d", target_dir, fexists(target_dir));
+	if (FALSE == fexists(target_dir)) {	return 0;}
+
+	// printf("target_dir is     %s", target_dir);
+	// printf("pattern_prefix is %s\n", pattern_prefix);
 
 	struct dirent **eps;
 	int n = scandir (target_dir, &eps, filter, alphasort); // dirent: alphasort
@@ -43,7 +53,7 @@ int main(int argc, char const *argv[])
 		}
 	} else {
 		perror ("Couldn't open the directory");
-		printf("%s\n", target_dir);
+		// printf("%s\n", target_dir);
 	}
 	
 	return 0;

